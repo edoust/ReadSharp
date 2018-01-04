@@ -65,9 +65,9 @@ namespace ReadSharp.Ports.Sgml
     ToLower
   }
 
-#if PORTABLE
+#if NETSTANDARD1_1
   /// <summary>
-  /// System.Xml.WhitespaceHandling is not available in .NETPortable.
+  /// System.Xml.WhitespaceHandling is not available in .NETNETSTANDARD1_1.
   /// </summary>
   public enum WhitespaceHandling
   {
@@ -491,10 +491,10 @@ namespace ReadSharp.Ports.Sgml
           }
           else
           {
-#if PORTABLE
+#if NETSTANDARD1_1
             throw new InvalidOperationException("Cannot load DTD without specifying base URI.");
 #else
-                        baseUri = new Uri(new Uri(Directory.GetCurrentDirectory() + "/"), this.m_syslit);
+            baseUri = new Uri(new Uri(Directory.GetCurrentDirectory() + "/"), this.m_syslit);
 #endif
           }
           this.m_dtd = SgmlDtd.Parse(baseUri, this.m_docType, this.m_pubid, baseUri.AbsoluteUri, this.m_subset, this.m_proxy, null);
@@ -655,10 +655,10 @@ namespace ReadSharp.Ports.Sgml
           }
           else
           {
-#if PORTABLE
+#if NETSTANDARD1_1
             throw new ArgumentException("Relative URLs are not supported.");
 #else
-                        this.m_baseUri = new Uri("file:///" + Directory.GetCurrentDirectory() + "//");
+            this.m_baseUri = new Uri("file:///" + Directory.GetCurrentDirectory() + "//");
 #endif
           }
         }
@@ -723,12 +723,12 @@ namespace ReadSharp.Ports.Sgml
     /// <summary>
     /// DTD validation errors are written to this log file.
     /// </summary>
-#if PORTABLE
-    [Obsolete("Not supported on the .NETPortable runtime.")]
+#if NETSTANDARD1_1
+    [Obsolete("Not supported on the .NETNETSTANDARD1_1 runtime.")]
 #endif
     public string ErrorLogFile
     {
-#if PORTABLE
+#if NETSTANDARD1_1
       get
       {
         throw new NotSupportedException();
@@ -738,15 +738,15 @@ namespace ReadSharp.Ports.Sgml
         throw new NotSupportedException();
       }
 #else
-            get
-            {
-                return this.m_errorLogFile;
-            }
-            set
-            {
-                this.m_errorLogFile = value;
-                this.m_log = new StreamWriter(value);
-            }
+      get
+      {
+        return this.m_errorLogFile;
+      }
+      set
+      {
+        this.m_errorLogFile = value;
+        this.m_log = new StreamWriter(value);
+      }
 #endif
     }
 
@@ -1151,10 +1151,10 @@ namespace ReadSharp.Ports.Sgml
     /// <remarks>
     /// This property applies only to an attribute node.
     /// </remarks>
-#if PORTABLE
+#if NETSTANDARD1_1
     public char QuoteChar
 #else
-        public override char QuoteChar
+    public override char QuoteChar
 #endif
     {
       get
@@ -2455,11 +2455,11 @@ namespace ReadSharp.Ports.Sgml
       }
     }
 
-#if !PORTABLE
-        public override void Close()
-        {
-            ((IDisposable)this).Dispose();
-        }
+#if !NETSTANDARD1_1
+    public override void Close()
+    {
+      ((IDisposable)this).Dispose();
+    }
 #endif
 
     /// <summary>
@@ -2507,10 +2507,10 @@ namespace ReadSharp.Ports.Sgml
     /// Reads the contents of an element or text node as a string.
     /// </summary>
     /// <returns>The contents of the element or an empty string.</returns>
-#if PORTABLE
+#if NETSTANDARD1_1
     public override string ReadContentAsString()
 #else
-        public override string ReadString()
+    public override string ReadString()
 #endif
     {
       if (this.m_node.NodeType == XmlNodeType.Element)
@@ -2567,10 +2567,10 @@ namespace ReadSharp.Ports.Sgml
           break;
       }
 
-#if PORTABLE
+#if NETSTANDARD1_1
       xw.Dispose();
 #else
-            xw.Close();
+      xw.Close();
 #endif
       return sw.ToString();
     }
@@ -2586,10 +2586,10 @@ namespace ReadSharp.Ports.Sgml
       StringWriter sw = new StringWriter(CultureInfo.InvariantCulture);
       XmlWriter xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, IndentChars = "  " });
       xw.WriteNode(this, true);
-#if PORTABLE
+#if NETSTANDARD1_1
       xw.Dispose();
 #else
-            xw.Close();
+      xw.Close();
 #endif
       return sw.ToString();
     }

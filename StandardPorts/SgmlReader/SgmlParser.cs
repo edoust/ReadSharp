@@ -26,7 +26,10 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.Linq.Expressions;
 using System.Net;
+using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Xml;
@@ -36,7 +39,7 @@ namespace ReadSharp.Ports.Sgml
   /// <summary>
   /// Thrown if any errors occur while parsing the source.
   /// </summary>
-#if !PORTABLE
+#if !NETSTANDARD1_1
     [Serializable]
 #endif
   public class SgmlParseException : Exception
@@ -81,7 +84,7 @@ namespace ReadSharp.Ports.Sgml
     {
     }
 
-#if !PORTABLE
+#if !NETSTANDARD1_1
         /// <summary>
         /// Initializes a new instance of the SgmlParseException class with serialized data. 
         /// </summary>
@@ -465,7 +468,7 @@ namespace ReadSharp.Ports.Sgml
         }
 
         Stream stream = null;
-#if PORTABLE
+#if NETSTANDARD1_1
         Encoding e = Encoding.UTF8;
 #else
                 Encoding e = Encoding.Default;
@@ -474,32 +477,39 @@ namespace ReadSharp.Ports.Sgml
         {
           case "file":
             {
-#if PORTABLE
-              throw new NotSupportedException("The file scheme is not supported by the .NETPortable framework.");
+#if NETSTANDARD1_1
+              throw new NotSupportedException("The file scheme is not supported by the .NETNETSTANDARD1_1 framework.");
 #else
-                            string path = this.m_resolvedUri.LocalPath;
-                            stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+              string path = this.m_resolvedUri.LocalPath;
+              stream = new FileStream(path, FileMode.Open, FileAccess.Read);
 #endif
             }
             break;
           default:
             //Console.WriteLine("Fetching:" + ResolvedUri.AbsoluteUri);
+#if NETSTANDARD1_1
+            var response = GetResponse(ResolvedUri, TimeSpan.FromSeconds(10));
+            Uri actual = response.RequestMessage.RequestUri;
+#else
             HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(ResolvedUri);
-#if !PORTABLE
-                        wr.UserAgent = "Mozilla/4.0 (compatible;);";
-                        wr.Timeout = 10000; // in case this is running in an ASPX page.
-                        if (m_proxy != null)
-                            wr.Proxy = new WebProxy(m_proxy);
-                        wr.PreAuthenticate = false; 
-                        // Pass the credentials of the process. 
-                        wr.Credentials = CredentialCache.DefaultCredentials; 
-#endif
+            wr.UserAgent = "Mozilla/4.0 (compatible;);";
+            wr.Timeout = 10000; // in case this is running in an ASPX page.
+            if (m_proxy != null)
+                wr.Proxy = new WebProxy(m_proxy);
+            wr.PreAuthenticate = false; 
+            // Pass the credentials of the process. 
+            wr.Credentials = CredentialCache.DefaultCredentials; 
             WebResponse resp = GetResponse(wr, TimeSpan.FromSeconds(10));
             Uri actual = resp.ResponseUri;
+#endif
             if (!string.Equals(actual.AbsoluteUri, this.m_resolvedUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase))
             {
               this.m_resolvedUri = actual;
             }
+
+#if NETSTANDARD1_1
+            string mimeType = response.Content.Headers.ContentType.MediaType;
+#else
             string contentType = resp.ContentType.ToLowerInvariant();
             string mimeType = contentType;
             int i = contentType.IndexOf(';');
@@ -507,19 +517,19 @@ namespace ReadSharp.Ports.Sgml
             {
               mimeType = contentType.Substring(0, i);
             }
+#endif
 
             if (StringUtilities.EqualsIgnoreCase(mimeType, "text/html"))
             {
               this.m_isHtml = true;
             }
 
-            i = contentType.IndexOf("charset");
-#if PORTABLE
+#if NETSTANDARD1_1
             e = Encoding.UTF8;
+            stream = response.Content.ReadAsStreamAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 #else
-                        e = Encoding.Default;
-#endif
-
+            i = contentType.IndexOf("charset");
+            e = Encoding.Default;
             if (i >= 0)
             {
               int j = contentType.IndexOf("=", i);
@@ -540,8 +550,8 @@ namespace ReadSharp.Ports.Sgml
                 }
               }
             }
-
             stream = resp.GetResponseStream();
+#endif
             break;
         }
 
@@ -552,6 +562,27 @@ namespace ReadSharp.Ports.Sgml
       }
     }
 
+#if NETSTANDARD1_1
+    private static HttpResponseMessage GetResponse(Uri uri, TimeSpan timeout)
+    {
+      try
+      {
+        using (var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true }) { Timeout = timeout })
+        {
+          return client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None)
+            .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+      }
+      catch (OperationCanceledException)
+      {
+        throw new TimeoutException("Timeout waiting for response");
+      }
+      catch (Exception ex)
+      {
+        throw new IOException(ex.Message, ex);
+      }
+    }
+#else
     private static HttpWebResponse GetResponse(HttpWebRequest wr, TimeSpan timeout)
     {
       HttpWebResponse response = null;
@@ -586,6 +617,7 @@ namespace ReadSharp.Ports.Sgml
 
       return response;
     }
+#endif
 
     /// <summary>
     /// Gets the character encoding for this entity.
@@ -631,10 +663,10 @@ namespace ReadSharp.Ports.Sgml
     public string ScanToken(StringBuilder sb, string term, bool nmtoken)
     {
       if (sb == null)
-        throw new ArgumentNullException("sb");
+        throw new ArgumentNullException(nameof(sb));
 
       if (term == null)
-        throw new ArgumentNullException("term");
+        throw new ArgumentNullException(nameof(term));
 
       sb.Length = 0;
       char ch = m_lastchar;
@@ -669,7 +701,7 @@ namespace ReadSharp.Ports.Sgml
     public string ScanLiteral(StringBuilder sb, char quote)
     {
       if (sb == null)
-        throw new ArgumentNullException("sb");
+        throw new ArgumentNullException(nameof(sb));
 
       sb.Length = 0;
       char ch = ReadChar();
@@ -712,7 +744,7 @@ namespace ReadSharp.Ports.Sgml
     public string ScanToEnd(StringBuilder sb, string type, string terminators)
     {
       if (terminators == null)
-        throw new ArgumentNullException("terminators");
+        throw new ArgumentNullException(nameof(terminators));
 
       if (sb != null)
         sb.Length = 0;
@@ -935,7 +967,7 @@ namespace ReadSharp.Ports.Sgml
     static int[] CtrlMap = new int[] {
                                              // This is the windows-1252 mapping of the code points 0x80 through 0x9f.
                                              8364, 129, 8218, 402, 8222, 8230, 8224, 8225, 710, 8240, 352, 8249, 338, 141,
-                                             381, 143, 144, 8216, 8217, 8220, 8221, 8226, 8211, 8212, 732, 8482, 353, 8250, 
+                                             381, 143, 144, 8216, 8217, 8220, 8221, 8226, 8211, 8212, 732, 8482, 353, 8250,
                                              339, 157, 382, 376
                                          };
 
@@ -1644,7 +1676,7 @@ namespace ReadSharp.Ports.Sgml
       UInt32 code;
       int i, j;
       byteCount += byteIndex;
-      for (i = byteIndex, j = charIndex; i + 3 < byteCount; )
+      for (i = byteIndex, j = charIndex; i + 3 < byteCount;)
       {
         code = (UInt32)(((bytes[i + 3]) << 24) | (bytes[i + 2] << 16) | (bytes[i + 1] << 8) | (bytes[i]));
         if (code > 0x10FFFF)
@@ -1681,7 +1713,7 @@ namespace ReadSharp.Ports.Sgml
       UInt32 code;
       int i, j;
       byteCount += byteIndex;
-      for (i = byteIndex, j = charIndex; i + 3 < byteCount; )
+      for (i = byteIndex, j = charIndex; i + 3 < byteCount;)
       {
         code = (UInt32)(((bytes[i]) << 24) | (bytes[i + 1] << 16) | (bytes[i + 2] << 8) | (bytes[i + 3]));
         if (code > 0x10FFFF)
@@ -1812,7 +1844,7 @@ namespace ReadSharp.Ports.Sgml
     public void AddAttDefs(Dictionary<string, AttDef> list)
     {
       if (list == null)
-        throw new ArgumentNullException("list");
+        throw new ArgumentNullException(nameof(list));
 
       if (m_attList == null)
       {
@@ -2227,7 +2259,7 @@ namespace ReadSharp.Ports.Sgml
     public bool CanContain(string name, SgmlDtd dtd)
     {
       if (dtd == null)
-        throw new ArgumentNullException("dtd");
+        throw new ArgumentNullException(nameof(dtd));
 
       // Do a simple search of members.
       foreach (object obj in Members)
@@ -3458,11 +3490,11 @@ namespace ReadSharp.Ports.Sgml
   {
     public static string ConvertFromUtf32(int utf32)
     {
-#if PORTABLE
+#if NETSTANDARD1_1
       if (utf32 < 0 || utf32 > 0x10FFFF)
-        throw new ArgumentOutOfRangeException("utf32", "The argument must be from 0 to 0x10FFFF.");
+        throw new ArgumentOutOfRangeException(nameof(utf32), "The argument must be from 0 to 0x10FFFF.");
       if (0xD800 <= utf32 && utf32 <= 0xDFFF)
-        throw new ArgumentOutOfRangeException("utf32", "The argument must not be in surrogate pair range.");
+        throw new ArgumentOutOfRangeException(nameof(utf32), "The argument must not be in surrogate pair range.");
       if (utf32 < 0x10000)
         return new string((char)utf32, 1);
       utf32 -= 0x10000;
@@ -3476,11 +3508,11 @@ namespace ReadSharp.Ports.Sgml
 
     public static int ConvertToUtf32(char highSurrogate, char lowSurrogate)
     {
-#if PORTABLE
+#if NETSTANDARD1_1
       if (highSurrogate < 0xD800 || 0xDBFF < highSurrogate)
-        throw new ArgumentOutOfRangeException("highSurrogate");
+        throw new ArgumentOutOfRangeException(nameof(highSurrogate));
       if (lowSurrogate < 0xDC00 || 0xDFFF < lowSurrogate)
-        throw new ArgumentOutOfRangeException("lowSurrogate");
+        throw new ArgumentOutOfRangeException(nameof(lowSurrogate));
 
       return 0x10000 + ((highSurrogate - 0xD800) << 10) + (lowSurrogate - 0xDC00);
 #else

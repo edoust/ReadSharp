@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.1</TargetFramework>
+    <AssemblyName>ReadSharp.Ports.NReadability</AssemblyName>
+    <RootNamespace>ReadSharp.Ports.NReadability</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\readability.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\readability.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SgmlReader\SgmlReader.csproj" />
+  </ItemGroup>
+
+</Project>

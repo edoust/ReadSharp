@@ -1,140 +1,27 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <MinimumVisualStudioVersion>11.0</MinimumVisualStudioVersion>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{06219CAD-E85E-48E2-A216-2539805A9EE8}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ReadSharp</RootNamespace>
-    <AssemblyName>ReadSharp</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile259</TargetFrameworkProfile>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>4.0</OldToolsVersion>
-    <PublishUrl>publish\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>ReadSharp</PackageId>
+    <PackageLicenseUrl>https://raw.github.com/ceee/ReadSharp/master/LICENSE-MIT</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/ceee/ReadSharp</PackageProjectUrl>
+    <PackageIconUrl>https://raw.github.com/ceee/ReadSharp/master/Assets/readsharp.png</PackageIconUrl>
+    <Description>ReadSharp is a .NET Standard library that extracts the main (meaningful) content of a website and returns the extracted content as HTML and its associated title, as well as other useful information (images, icons, ...).</Description>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <PackageTags>ReadSharp PocketAPI Pocket PocketSharp Tobias Klika cee NReadability SgmlReader Reader Article SDK Poki</PackageTags>
+    <Copyright>Copyright by cee, 2016</Copyright>
+    <Version>6.3.1</Version>
+    <Authors>ceee</Authors>
+    <Company />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-    <None Include="packages.config" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.6.11" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Encodings\Encoder.cs" />
-    <Compile Include="Encodings\Iso88591.cs" />
-    <Compile Include="Encodings\Iso885913.cs" />
-    <Compile Include="Encodings\Iso885915.cs" />
-    <Compile Include="Encodings\Iso88592.cs" />
-    <Compile Include="Encodings\Iso88593.cs" />
-    <Compile Include="Encodings\Iso88594.cs" />
-    <Compile Include="Encodings\Iso88595.cs" />
-    <Compile Include="Encodings\Iso88596.cs" />
-    <Compile Include="Encodings\Iso88597.cs" />
-    <Compile Include="Encodings\Iso88598.cs" />
-    <Compile Include="Encodings\Iso88599.cs" />
-    <Compile Include="Encodings\Windows1250.cs" />
-    <Compile Include="Encodings\Windows1251.cs" />
-    <Compile Include="Encodings\Windows1252.cs" />
-    <Compile Include="Encodings\Windows1253.cs" />
-    <Compile Include="Encodings\Windows1254.cs" />
-    <Compile Include="Encodings\Windows1255.cs" />
-    <Compile Include="Encodings\Windows1256.cs" />
-    <Compile Include="Encodings\Windows1257.cs" />
-    <Compile Include="Encodings\Windows1258.cs" />
-    <Compile Include="IReader.cs" />
-    <Compile Include="Models\Article.cs" />
-    <Compile Include="Models\ArticleImage.cs" />
-    <Compile Include="Models\HttpOptions.cs" />
-    <Compile Include="Models\ReadOptions.cs" />
-    <Compile Include="Reader.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Models\Response.cs" />
-    <Compile Include="ReadException.cs" />
-    <Compile Include="HtmlUtilities.cs" />
+    <ProjectReference Include="..\StandardPorts\NReadability\NReadability.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="HtmlAgilityPack, Version=1.4.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\HtmlAgilityPack.1.4.9\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch\HtmlAgilityPack.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Net.Http, Version=1.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\portable-net40+sl4+win8+wp71+wpa81\System.Net.Http.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Net.Http.Extensions, Version=1.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\portable-net40+sl4+win8+wp71+wpa81\System.Net.Http.Extensions.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Net.Http.Primitives, Version=1.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\portable-net40+sl4+win8+wp71+wpa81\System.Net.Http.Primitives.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PortablePorts\NReadability\NReadability.csproj">
-      <Project>{14c3ee6a-54a4-4a37-8b56-d52a3802f1c2}</Project>
-      <Name>NReadability</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PortablePorts\SgmlReader\SgmlReader.csproj">
-      <Project>{9112414c-e2d1-43ba-a298-a89f77d94332}</Project>
-      <Name>SgmlReader</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

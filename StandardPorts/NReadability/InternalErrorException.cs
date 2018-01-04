@@ -1,4 +1,4 @@
-﻿/*
+/*
  * NReadability
  * http://code.google.com/p/nreadability/
  * 
@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Runtime.Serialization;
 
 namespace ReadSharp.Ports.NReadability
 {
