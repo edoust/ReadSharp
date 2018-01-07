@@ -1,4 +1,4 @@
-﻿using ReadSharp.Ports.NReadability;
+using ReadSharp.Ports.NReadability;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -57,13 +57,18 @@ namespace ReadSharp
       { "//m.spiegel.de", "//www.spiegel.de" }
     };
 
-
-
     /// <summary>
     /// Initializes a new instance of the <see cref="Reader" /> class.
     /// </summary>
-    /// <param name="options">The HTTP options.</param>
-    public Reader(HttpOptions options = null)
+    public Reader() : this(null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Reader"/> class.
+    /// </summary>
+    /// <param name="options">The http options.</param>
+    public Reader(HttpOptions options)
     {
       // initialize transcoder
       _transcoder = new NReadabilityTranscoder(
@@ -113,6 +118,18 @@ namespace ReadSharp
     }
 
 
+    /// <summary>
+    /// Reads article content from the given uri.
+    /// </summary>
+    /// <param name="uri">A uri to extract the content from.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>
+    /// An article with extracted content and meta information.
+    /// </returns>
+    public Task<Article> ReadAsync(Uri uri, CancellationToken cancellationToken)
+    {
+      return this.ReadAsync(uri, null, cancellationToken);
+    }
 
     /// <summary>
     /// Reads article content from the given URI.
@@ -123,10 +140,7 @@ namespace ReadSharp
     /// <returns>
     /// An article with extracted content and meta information.
     /// </returns>
-    /// <exception cref="ReadException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    /// <exception cref="OperationCanceledException"></exception>
-    public async Task<Article> Read(Uri uri, ReadOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+    public async Task<Article> ReadAsync(Uri uri, ReadOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
     {
       _currentPages = new List<string>();
 
@@ -203,6 +217,76 @@ namespace ReadSharp
       };
     }
 
+    /// <summary>
+    /// Reads article content from the given stream.
+    /// </summary>
+    /// <param name="stream">The stream to extract the content from.</param>
+    /// <param name="encoding">The stream encoding.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>
+    /// An article with extracted content and meta information.
+    /// </returns>
+    public Article Read(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+    {
+      return Read(stream, encoding, ReadOptions.CreateDefault(), cancellationToken);
+    }
+
+    /// <summary>
+    /// Reads article content from the given stream.
+    /// </summary>
+    /// <param name="stream">The stream to extract the content from.</param>
+    /// <param name="encoding">The stream encoding.</param>
+    /// <param name="options">The transform options.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>
+    /// An article with extracted content and meta information.
+    /// </returns>
+    public Article Read(Stream stream, Encoding encoding, ReadOptions options, CancellationToken cancellationToken)
+    {
+      // readability
+      TranscodingResult transcodingResult;
+      try
+      {
+        // transcode content
+        transcodingResult = ExtractReadableInformation(null, stream, options, encoding);
+      }
+      catch (Exception exc)
+      {
+        throw new ReadException(exc.Message);
+      }
+
+      // get word count and plain text
+      string plainContent;
+      int wordCount = 0;
+
+      try
+      {
+        plainContent = HtmlUtilities.ConvertToPlainText(transcodingResult.ExtractedContent);
+        wordCount = HtmlUtilities.CountWords(plainContent);
+      }
+      catch
+      {
+        plainContent = null;
+      }
+
+      // create article
+      return new Article
+      {
+        Title = transcodingResult.ExtractedTitle,
+        Description = transcodingResult.ExtractedDescription,
+        Content = transcodingResult.ExtractedContent,
+        ContentExtracted = transcodingResult.ContentExtracted && wordCount > 0,
+        Raw = _rawHTML,
+        PlainContent = plainContent,
+        WordCount = wordCount,
+        PageCount = 1,
+        FrontImage = transcodingResult.ExtractedImage,
+        Images = new ArticleImage[0],
+        Favicon = transcodingResult.ExtractedFavicon,
+        NextPage = transcodingResult.NextPageUrl != null ? new Uri(transcodingResult.NextPageUrl, UriKind.Absolute) : null,
+        Encoding = encoding
+      };
+    }
 
 
     /// <summary>
@@ -227,7 +311,7 @@ namespace ReadSharp
       // set properties for processing
       TranscodingInput transcodingInput = new TranscodingInput(_rawHTML)
       {
-        Url = uri.ToString(),
+        Url = uri?.ToString(),
         DomSerializationParams = new DomSerializationParams()
         {
           BodyOnly = !options.HasHeaderTags,
@@ -244,8 +328,6 @@ namespace ReadSharp
       // process/transcode HTML
       return _transcoder.Transcode(transcodingInput);
     }
-
-
 
     /// <summary>
     /// Reverses the deep links.
@@ -279,13 +361,12 @@ namespace ReadSharp
     }
 
 
-
     /// <summary>
     /// Fetches a resource
     /// </summary>
     /// <param name="uri">The URI.</param>
     /// <param name="options">The options.</param>
-    /// <param name="isContinuedPage">if set to <c>true</c> [is continued page].</param>
+    /// <param name="previousResponse"></param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
     /// <exception cref="ReadException">
