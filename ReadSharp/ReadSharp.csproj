@@ -11,7 +11,7 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <PackageTags>ReadSharp PocketAPI Pocket PocketSharp Tobias Klika cee NReadability SgmlReader Reader Article SDK Poki</PackageTags>
     <Copyright>Copyright by cee, 2016</Copyright>
-    <Version>6.3.1</Version>
+    <Version>6.3.2</Version>
     <Authors>ceee</Authors>
     <Company />
   </PropertyGroup>
